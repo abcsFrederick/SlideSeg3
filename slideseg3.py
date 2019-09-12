@@ -443,53 +443,6 @@ def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suff
     :return: chip_dict. Dictionary of chip names, level, col, row, and scale
     :return: image_dict. Dictionary of annotations and chips with those annotations
     """
-
-    # Image dictionary of keys and save variables
-    # image_dict = defaultdict(list)
-    # chip_dict = defaultdict(list)
-    # _save_count_blank = 1
-    # _save_count_annotated = 1
-    #
-    # for i in range(levels):
-    #     width, height = dims[i]
-    #     scale_factor_width = float(dims[0][0]) / width
-    #     scale_factor_height = float(dims[0][1]) / height
-    #     print(('Scanning slide level {0} of {1}'.format(i + 1, levels)))
-    #
-    #     # Generate the image chip coordinates and save information
-    #     for col in tqdm.tqdm(list(range(0, width, chip_size - overlap))):
-    #         for row in range(0, height, chip_size - overlap):
-    #             img_mask = mask[int(row * scale_factor_height):int((row + chip_size) * scale_factor_height),
-    #                        int(col * scale_factor_width):int((col + chip_size) * scale_factor_width)]
-    #             pix_list = np.unique(img_mask)
-    #
-    #             # Check whether or not to save the region
-    #             save = checksave(save_all, pix_list, save_ratio, _save_count_annotated, _save_count_blank)
-    #             # Save image and assign keys.
-    #             if save is True:
-    #                 chip_name = '{0}_{1}_{2}_{3}.{4}'.format(filename.rstrip('.svs'), i, row, col, suffix)
-    #                 keys = []
-    #
-    #                 # Make sure annotation key contains value
-    #                 for key, value in annotations.items():
-    #                     for pixel in pix_list:
-    #                         if int(pixel) == int(value[0]):
-    #                             keys.append(key)
-    #                             image_dict[key].append(chip_name)
-    #
-    #                 if len(keys) == 0:
-    #                     _save_count_blank += 1
-    #                     keys.append('NONE')
-    #                 else:
-    #                     _save_count_annotated += 1
-    #
-    #                 chip_dict[chip_name] = [keys]
-    #                 chip_dict[chip_name].append(i)
-    #                 chip_dict[chip_name].append(col)
-    #                 chip_dict[chip_name].append(row)
-    #                 chip_dict[chip_name].append(scale_factor_width)
-    #                 chip_dict[chip_name].append(scale_factor_height)
-
     _save_count_blank = Value("d",1)
     _save_count_annotated = Value("d",1)
     def _getchips(_save_count_blank,_save_count_annotated,i):
@@ -536,7 +489,7 @@ def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suff
         return image_dict, chip_dict
     results = []
     pool = Pool(cpu_count())
-    for i in range(1):
+    for i in range(levels):
         results.append(pool.apply_async(_getchips, args=(_save_count_blank,_save_count_annotated, i,)))
     pool.close()
     pool.join()
@@ -592,31 +545,6 @@ def run(parameters, filename):
 
     # Save chips and masks
     print(('Saving chips... {0} total chips'.format(len(chip_dictionary))))
-
-    # for filename, value in tqdm.tqdm(iter(chip_dictionary.items())):
-    #     keys = value[0]
-    #     i = value[1]
-    #     col = value[2]
-    #     row = value[3]
-    #     scale_factor_width = value[4]
-    #     scale_factor_height = value[5]
-    #
-    #     # load chip region from slide image
-    #     img = _osr.read_region([int(col * scale_factor_width), int(row * scale_factor_height)], i,
-    #                           [_chip_size, _chip_size]).convert('RGB')
-    #
-    #     # load image mask and curate
-    #     img_mask = _mask[int(row * scale_factor_height):int((row + _chip_size) * scale_factor_height),
-    #                      int(col * scale_factor_width):int((col + _chip_size) * scale_factor_width)]
-    #
-    #     img_mask = curatemask(img_mask, scale_factor_width, scale_factor_height, _chip_size)
-    #
-    #     # save the image chip and image mask
-    #     _path_chip = output_directory_chip + filename
-    #     _path_mask = output_directory_mask + filename
-    #
-    #     savechip(img, _path_chip, _quality, keys)
-    #     savemask(img_mask, _path_mask, keys)
 
     def _saveChipsAndMask(filename, value):
         keys = value[0]
