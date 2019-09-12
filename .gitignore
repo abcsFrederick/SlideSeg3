@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__
+images
+slideseg.py
+tagappend.py
+test
+testMulti.py
+venv
+xml
