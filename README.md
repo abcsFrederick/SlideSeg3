@@ -22,14 +22,16 @@ Brendan Crabb, Niels Olson, "SlideSeg: a Python module for the creation of annot
 
 ### 1. Environment <a class ="anchor" id="1."></a>
 
+Go to main directory
+
 ##### 1.1 Creating environment from .yml file <a class ="anchor" id="1.1"></a>
 
 <code>conda env create -f environment_slideseg.yml </code>
 
 Creating the environment might take a few minutes. Once finished, issue the following command to activate the environment:
 
-* Windows: <code>activate SlideSeg</code>
-* macOS and Linux: <code>source activate SlideSeg</code>
+* Windows: <code>activate SlideSeg3</code>
+* macOS and Linux: <code>source activate SlideSeg3</code>
 
 If the environment was activated successfully, you should see (SlideSeg) at the beggining of the command prompt.
 
