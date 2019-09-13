@@ -72,7 +72,7 @@ Set parameters in Parameters.txt
    The Annotation_Key file contains every annotation key with its associated color code. In all image masks, annotations with that key will have the specified pixel value.  If an unknown key is encountered, it will be given a pixel value and added to the Annotation_Key automatically. <br>
 
 ### 3. Run <a class ="anchor" id="3."></a>
-Once in SlideSeg3 environment, run the python script 'main.py'
+Once in SlideSeg3 environment, run the python script 'main.py'. Jupter notebook will be supported later.
 
 ### 4. References <a class ="anchor" id="4."></a>
 https://github.com/btcrabb/SlideSeg
