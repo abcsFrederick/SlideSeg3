@@ -1,4 +1,4 @@
-name: SlideSeg
+name: SlideSeg3
 channels:
 - defaults
 dependencies:

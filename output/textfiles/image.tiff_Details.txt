@@ -1,1 +1,0 @@
-Key: TEST                       Mask_Color: [198]
