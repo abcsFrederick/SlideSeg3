@@ -26,18 +26,18 @@ Go to main directory
 
 ##### 1.1 Creating environment from .yml file <a class ="anchor" id="1.1"></a>
 
-<code>conda env create -f environment_slideseg.yml </code>
+<code>conda env create -f environment_slideseg3.yml </code>
 
 Creating the environment might take a few minutes. Once finished, issue the following command to activate the environment:
 
 * Windows: <code>activate SlideSeg3</code>
 * macOS and Linux: <code>source activate SlideSeg3</code>
 
-If the environment was activated successfully, you should see (SlideSeg) at the beggining of the command prompt.
+If the environment was activated successfully, you should see (SlideSeg3) at the beggining of the command prompt.
 
 ### 2. Setup <a class ="anchor" id="2."></a>
 
-Create a folder called 'images/' in the main directory and copy all of the slide images into this folder. Copy the markup and annotation files (in .xml format) into the xml folder in the main project directory. It is important that the annotation files have the same file name as the slide they are associated with.
+Create a folder called 'images/' in the main directory and copy all of the slide images into this folder. Create a folder called 'xml/' in the main directory copy the markup and annotation files (in .xml format) into this folder. It is important that the annotation files have the same file name as the slide they are associated with.
 
 ##### 2.1 Parameters <a class ="anchor" id="2.1"></a>
 
@@ -72,7 +72,7 @@ Set parameters in Parameters.txt
    The Annotation_Key file contains every annotation key with its associated color code. In all image masks, annotations with that key will have the specified pixel value.  If an unknown key is encountered, it will be given a pixel value and added to the Annotation_Key automatically. <br>
 
 ### 3. Run <a class ="anchor" id="3."></a>
-Run the python script 'main.py'
+Once in SlideSeg3 environment, run the python script 'main.py'
 
 ### 4. References <a class ="anchor" id="4."></a>
 https://github.com/btcrabb/SlideSeg
