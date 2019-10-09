@@ -28,7 +28,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import sys
-# Import necessary packages
 from PIL import Image
 from collections import defaultdict
 from openslide import OpenSlide
@@ -39,8 +38,7 @@ import cv2
 import os
 import timeit
 from multiprocessing.dummy import Pool as ThreadPool
-# from multiprocessing import Pool
-from multiprocessing import Value, cpu_count
+from multiprocessing import Value
 
 def load_parameters(parameters):
     """
