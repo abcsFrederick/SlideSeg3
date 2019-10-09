@@ -35,6 +35,8 @@ Creating the environment might take a few minutes. Once finished, issue the foll
 
 If the environment was activated successfully, you should see (SlideSeg3) at the beggining of the command prompt.
 
+OpenSlide and OpenCV are C libraries; as a result, they have to be installed separately from the conda environment, which contains all of the python dependencies.
+
 ### 2. Setup <a class ="anchor" id="2."></a>
 
 Create a folder called 'images/' in the main directory and copy all of the slide images into this folder. Create a folder called 'xml/' in the main directory copy the markup and annotation files (in .xml format) into this folder. It is important that the annotation files have the same file name as the slide they are associated with.
@@ -63,6 +65,12 @@ Set parameters in Parameters.txt
 <b>save_all:</b> True saves every image_chip, False only saves chips containing an annotated pixel <br>
 
 <b>save_ratio:</b> Ratio of image_chips containing annotations to image_chips not containing annotations (use 'inf' if only annotated chips are desired; only applicable if save_all == False <br>
+
+<b>level:</b> Choose from highest (highest magnification), all, lowest (lowest magnification), 40.0, 20.0, 10.0, 5.0, 2.5, 1.25
+if no specific magnification created by manufactory will use lower magnification. e.g 40x->20x <br>
+
+<b>cpus:</b> Number of CPUs to be used to parallel multiple WSIs, if processing all levels, less then 4 cpus will be recommanded in case of memory lack.
+
 </p>
 
 ##### 2.2 Annotation Key <a class ="anchor" id="2.2"></a>

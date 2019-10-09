@@ -27,7 +27,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
+import sys
 # Import necessary packages
 from PIL import Image
 from collections import defaultdict
@@ -38,7 +38,8 @@ import tqdm
 import cv2
 import os
 import timeit
-from multiprocessing.dummy import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+# from multiprocessing import Pool
 from multiprocessing import Value, cpu_count
 
 def load_parameters(parameters):
@@ -54,7 +55,10 @@ def load_parameters(parameters):
         option = line.partition(":")[0]
         value = line.partition(":")[2]
         value = value.partition("#")[0].strip()
-        params[option] = value
+        if value.lower() in ("true", "yes", "1"):
+            params[option] = True
+        else:
+            params[option] = value
     return params
 
 
@@ -73,6 +77,7 @@ def makemask(annotation_key, size, xml_path):
     root = tree.getroot()
 
     # Generate annotation array and key dictionary
+    # memory cost
     mat = np.zeros((size[1], size[0]), dtype='uint8')
     annotations = defaultdict(list)
     contours = []
@@ -85,6 +90,7 @@ def makemask(annotation_key, size, xml_path):
 
     color_codes = loadkeys(annotation_key)
 
+    size = 0
     for reg in root.iter('Region'):
         key = reg.get('Text').upper()
         if key in color_codes:
@@ -104,10 +110,12 @@ def makemask(annotation_key, size, xml_path):
         cnt = np.array(points).reshape((-1, 1, 2)).astype(np.int32)
         cv2.fillPoly(mat, [cnt], color_code)
         contours.append(cnt)
-
+        # print('{} mat size is '.format(sys.getsizeof(mat)))
+        size = size + sys.getsizeof(cnt) + sys.getsizeof(mat) + sys.getsizeof(points)
         # annotations and colors
         if key not in annotations:
             annotations['{0}'.format(key)].append(color_code)
+    # print('{} total size is {}'.format(xml_path,size/10**10))
     print('annotations loaded successfully')
     return mat, annotations
 
@@ -291,7 +299,7 @@ def savechip(chip, path, quality, keys):
         # Save image chip
         exif_bytes = attachtags(path, keys)
         chip.save(path, quality = quality, exif=exif_bytes)
-
+        print('chip path:', path)
         # Attach image tags
         # attachtags(path, keys)
 
@@ -303,6 +311,12 @@ def savechip(chip, path, quality, keys):
         # Attach image tags
         # attachtags(path, keys)
 
+# def saveEntiremask(mask, path):
+#     directory, filename = os.path.split(path)
+#     ensuredirectory(directory)
+#     # print(mask.dtype)
+#     # print(type(mask))
+#     cv2.imwrite(path, mask)
 
 def savemask(mask, path, keys):
     """
@@ -325,6 +339,7 @@ def savemask(mask, path, keys):
         exif_bytes = attachtags(path, keys)
         mask = Image.open(path)
         mask.save(path, exif=exif_bytes)
+        print('mask path:', path)
         # Attach image tags
         # attachtags(path, keys)
 
@@ -382,7 +397,19 @@ def formatcheck(format):
 
     return format, _suffix
 
+def getDesireLevel(_process_level, _levels, availableMag):
+    levelsIndex = {}
+    for idx, mag in enumerate(availableMag):
+        levelsIndex[mag] = idx
 
+    levelsIndex['lowest'] = _levels - 1
+    levelsIndex['all'] = _levels
+    levelsIndex['highest'] = 0
+
+    if (_process_level not in availableMag):
+        nearestIndex = min(availableMag, key=lambda v: abs(float(_process_level) - float(v)))
+        _process_level = nearestIndex
+    return levelsIndex[_process_level]
 def openwholeslide(path):
     """
     Opens a whole slide image
@@ -399,8 +426,23 @@ def openwholeslide(path):
     # Get Image Levels and Level Dimensions
     levels = osr.level_count
     dims = osr.level_dimensions
+    mpp_x = osr.properties["openslide.mpp-x"]
+    listDownsamples = osr.level_downsamples
+    Objective = float(osr.properties["openslide.objective-power"])
+    availableMag = []
+    for x in listDownsamples:
+        mag = Objective / x
+        if mag > 3:
+            availableMag.append(str(float('%.0f'%mag)))
+        elif mag <= 3 and mag > 2:
+            availableMag.append(str(float('%.1f'%mag)))
+        else:
+            availableMag.append(str(float('%.2f'%mag)))
+    othersOptions = ["all","lowest","highest"]
+    availableMag += othersOptions
     print(('{0} loaded successfully'.format(_filename)))
-    return osr, levels, dims
+
+    return osr, levels, dims, availableMag
 
 
 def curatemask(mask, scale_width, scale_height, chip_size):
@@ -426,7 +468,7 @@ def curatemask(mask, scale_width, scale_height, chip_size):
     return mask
 
 
-def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suffix, save_all, save_ratio):
+def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suffix, save_all, save_ratio, cpus, level=None):
     """
     Finds chip locations that should be loaded and saved
 
@@ -458,8 +500,8 @@ def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suff
             for row in range(0, height, chip_size - overlap):
                 img_mask = mask[int(row * scale_factor_height):int((row + chip_size) * scale_factor_height),
                            int(col * scale_factor_width):int((col + chip_size) * scale_factor_width)]
+                # memory cost
                 pix_list = np.unique(img_mask)
-
                 # Check whether or not to save the region
                 save = checksave(save_all, pix_list, save_ratio, _save_count_annotated.value, _save_count_blank.value)
                 # Save image and assign keys.
@@ -487,21 +529,32 @@ def getchips(levels, dims, chip_size, overlap, mask, annotations, filename, suff
                     chip_dict[chip_name].append(scale_factor_width)
                     chip_dict[chip_name].append(scale_factor_height)
         return image_dict, chip_dict
-    results = []
-    pool = Pool(cpu_count())
-    for i in range(levels):
-        results.append(pool.apply_async(_getchips, args=(_save_count_blank,_save_count_annotated, i,)))
-    pool.close()
-    pool.join()
-    image_dict = defaultdict(list)
-    chip_dict = defaultdict(list)
-    for result in results:
-        image_dict.update(result.get()[0])
-        chip_dict.update(result.get()[1])
+    if level == levels:
+        print('processing all levels...')
+        results = []
+        try:
+            pool = ThreadPool(cpus)
+        except Exception as err:
+            print('No sub pool created')
+        start = timeit.default_timer()
+        for i in range(levels):
+            results.append(pool.apply_async(_getchips, args=(_save_count_blank,_save_count_annotated, i,)))
+        pool.close()
+        pool.join()
+        print('get chips takes:',timeit.default_timer() - start)
+        image_dict = defaultdict(list)
+        chip_dict = defaultdict(list)
+        for result in results:
+            image_dict.update(result.get()[0])
+            chip_dict.update(result.get()[1])
+    else:
+        print('processing level {0}'.format(level + 1))
+        image_dict, chip_dict = _getchips(_save_count_blank,_save_count_annotated, level)
+
+
     return chip_dict, image_dict
 
-
-def run(parameters, filename):
+def run(parameters, filename, convert=False):
     """
     Runs SlideSeg: Generates image chips from a whole slide image.
     :param parameters: specified in Parameters.txt file
@@ -520,10 +573,20 @@ def run(parameters, filename):
     _key = parameters["key"]
     _save_all = parameters["save_all"]
     _save_ratio = float(parameters["save_ratio"])
+    _process_level = parameters["level"]
+    _cpus = int(parameters["cpus"])
+
+    if _process_level not in ('lowest','highest','all','40.0','20.0','10.0','5.0','2.5'):
+        print('Please select from lowest, highest, all or [40.0, 20.0, 10.0, 5.0, 2.5] for level')
+        return
 
     # Open slide
-    _osr, _levels, _dims = openwholeslide('{0}{1}'.format(_slide_path, filename))
+    _osr, _levels, _dims, availableMag = openwholeslide('{0}{1}'.format(_slide_path, filename))
+
     _size = (int(_dims[0][0]), int(_dims[0][1]))
+
+
+    level = getDesireLevel(_process_level, _levels, availableMag)
 
     # Annotation Mask
     xml_file = filename.rstrip(".svs")
@@ -532,54 +595,74 @@ def run(parameters, filename):
     print(('loading annotation data from {0}/{1}'.format(_xml_path, xml_file)))
     _mask, _annotations = makemask(_key, _size, '{0}{1}'.format(_xml_path, xml_file))
 
-    # Define output directory
-    output_directory_chip = '{0}image_chips/'.format(_output_dir)
-    output_directory_mask = '{0}image_mask/'.format(_output_dir)
+    if convert:
+        maskDest = 'mask'
+        if not os.path.exists(maskDest):
+            os.makedirs(maskDest)
+        print(_mask.shape)
+        _path_mask = maskDest +'/' + filename.rstrip(".svs") + '.tiff'
+        cv2.imwrite(_path_mask, _mask[:,:])
+    else:
+        # try:
+        # xml_entire_path = parameters["xml_entire_path"]
+        # saveEntiremask(_mask, '{0}{1}'.format(xml_entire_path, filename + ".tiff"))
+        # print(('Saving entire xml to tif... {0}'.format(filename + ".tiff")))
+        # except:
 
-    # Output formatting check
-    _format, _suffix = formatcheck(_format)
+        _output_dir = _output_dir + filename + '/'
+        # Define output directory
+        output_directory_chip = '{0}image_chips/'.format(_output_dir)
+        output_directory_mask = '{0}image_mask/'.format(_output_dir)
 
-    # Find chip data/locations to be saved
-    chip_dictionary, image_dict = getchips(_levels, _dims, _chip_size, _overlap,
-                                           _mask, _annotations, filename, _suffix, _save_all, _save_ratio)
+        # Output formatting check
+        _format, _suffix = formatcheck(_format)
 
-    # Save chips and masks
-    print(('Saving chips... {0} total chips'.format(len(chip_dictionary))))
+        # Find chip data/locations to be saved
+        chip_dictionary, image_dict = getchips(_levels, _dims, _chip_size, _overlap,
+                                           _mask, _annotations, filename, _suffix, _save_all, _save_ratio, _cpus, level=level)
 
-    def _saveChipsAndMask(filename, value):
-        keys = value[0]
-        i = value[1]
-        col = value[2]
-        row = value[3]
-        scale_factor_width = value[4]
-        scale_factor_height = value[5]
+        # Save chips and masks
+        print(('pid:{0} is Saving chips... {1} total chips'.format(os.getpid(), len(chip_dictionary))))
 
-        # load chip region from slide image
-        img = _osr.read_region([int(col * scale_factor_width), int(row * scale_factor_height)], i,
-                              [_chip_size, _chip_size]).convert('RGB')
+        def _saveChipsAndMask(filename, value):
+            keys = value[0]
+            i = value[1]
 
-        # load image mask and curate
-        img_mask = _mask[int(row * scale_factor_height):int((row + _chip_size) * scale_factor_height),
-                         int(col * scale_factor_width):int((col + _chip_size) * scale_factor_width)]
+            col = value[2]
+            row = value[3]
+            scale_factor_width = value[4]
+            scale_factor_height = value[5]
+    
+            # load chip region from slide image
+            img = _osr.read_region([int(col * scale_factor_width), int(row * scale_factor_height)], i,
+                                  [_chip_size, _chip_size]).convert('RGB')
+    
+            # load image mask and curate
+            img_mask = _mask[int(row * scale_factor_height):int((row + _chip_size) * scale_factor_height),
+                             int(col * scale_factor_width):int((col + _chip_size) * scale_factor_width)]
+    
+            img_mask = curatemask(img_mask, scale_factor_width, scale_factor_height, _chip_size)
+    
+            # save the image chip and image mask
+            _path_chip = output_directory_chip + filename
+            _path_mask = output_directory_mask + filename
+    
+            savechip(img, _path_chip, _quality, keys)
+            savemask(img_mask, _path_mask, keys)
 
-        img_mask = curatemask(img_mask, scale_factor_width, scale_factor_height, _chip_size)
 
-        # save the image chip and image mask
-        _path_chip = output_directory_chip + filename
-        _path_mask = output_directory_mask + filename
+        pool = ThreadPool(_cpus)
+        for filename, value in tqdm.tqdm(iter(chip_dictionary.items())):
+            pool.apply_async(_saveChipsAndMask, args=(filename,value,))
+            # _saveChipsAndMask(filename, value)
+        pool.close()
+        pool.join()
 
-        savechip(img, _path_chip, _quality, keys)
-        savemask(img_mask, _path_mask, keys)
+        # Make text output of Annotation Data
+        print('Updating txt file details...')
 
-    pool = Pool(cpu_count())
-    for filename, value in tqdm.tqdm(iter(chip_dictionary.items())):
-        pool.apply_async(_saveChipsAndMask, args=(filename,value))
-    pool.close()
-    pool.join()
-    # Make text output of Annotation Data
-    print('Updating txt file details...')
+        writekeys(xml_file, _annotations)
+        writeimagelist(xml_file, image_dict)
 
-    writekeys(xml_file, _annotations)
-    writeimagelist(xml_file, image_dict)
+        print('txt file details updated')
 
-    print('txt file details updated')
