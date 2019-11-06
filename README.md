@@ -86,10 +86,13 @@ Once in SlideSeg3 environment, run the python script 'main.py'. Jupter notebook 
 https://github.com/btcrabb/SlideSeg
 
 ### 5. Biowulf script
-  Go to SlideSeg3(cd SlideSeg3)
-  Assume your data located at /data/$USER/images and /data/$USER/xml
-  output will be created at after job done
-  /data/$USER/SlideSeg3-<Job id>
+  Go to SlideSeg3 directory
+
+  Assume your data located at "/data/$USER/images" and "/data/$USER/xml"
+
+  Output will be created at 
+  "/data/$USER/SlideSeg3-Job id" after job done
+
 ```console
   sbatch \
       --gres=lscratch:200 \
