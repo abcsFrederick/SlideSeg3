@@ -3,6 +3,7 @@ output
 .ipynb_checkpoints
 .idea
 .DS_Store
+Parameters.txt.bak
 __pycache__
 images
 slideseg.py
@@ -11,3 +12,5 @@ test
 testMulti.py
 venv
 xml
+SlideSeg3.ipynb
+Time consumption.ods
