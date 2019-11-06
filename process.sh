@@ -85,4 +85,4 @@ cat Parameters.txt
 
 # run python main.py
 python main.py
-cp -r "${TMPDIR}/${PREFIX}/output" "/data/${USER}/SlideSeg-${PREFIX}"
+cp -r "${TMPDIR}/${PREFIX}/output" "/data/${USER}/SlideSeg3-${PREFIX}"
