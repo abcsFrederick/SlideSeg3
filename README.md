@@ -100,6 +100,6 @@ https://github.com/btcrabb/SlideSeg
       --mem=200g \
       --time=1440 \
       process.sh \
-          /data/$USER/images \
-          /data/$USER/xml
+          /data/$USER/images/ \
+          /data/$USER/xml/
 ```

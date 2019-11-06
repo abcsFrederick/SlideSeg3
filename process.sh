@@ -80,7 +80,7 @@ conda env create -f environment_slideseg3.yml
 conda activate SlideSeg3
 
 # Changing parameters
-python prm.py --slide_path=$1 --xml_path=$2 --output_dir="${TMPDIR}/${PREFIX}/output" --cpus=${N_PROC}
+python prm.py --slide_path=$1 --xml_path=$2 --output_dir="${TMPDIR}/${PREFIX}/output/" --cpus=${N_PROC}
 cat Parameters.txt
 
 # run python main.py

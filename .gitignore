@@ -1,11 +1,11 @@
-mask
-output
 .ipynb_checkpoints
 .idea
 .DS_Store
 Parameters.txt.bak
 __pycache__
 images
+mask
+output
 slideseg.py
 tagappend.py
 test
