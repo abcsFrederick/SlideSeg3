@@ -640,11 +640,22 @@ def run(parameters, filename, convert=False):
                              int(col * scale_factor_width):int((col + _chip_size) * scale_factor_width)]
     
             img_mask = curatemask(img_mask, scale_factor_width, scale_factor_height, _chip_size)
-    
+
+            # Tag based subfolder
+            keysDir  = ''
+            for key in keys:
+                if keysDir != '':
+                    keysDir = keysDir + ' ' + key
+                else:
+                    keysDir = keysDir + key
+            output_directory_chip = '{0}{1}/image_chips/'.format(_output_dir, keysDir)
+            output_directory_mask = '{0}{1}/image_mask/'.format(_output_dir, keysDir)
+
             # save the image chip and image mask
             _path_chip = output_directory_chip + filename
             _path_mask = output_directory_mask + filename
-    
+
+
             savechip(img, _path_chip, _quality, keys)
             savemask(img_mask, _path_mask, keys)
 
