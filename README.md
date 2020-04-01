@@ -103,3 +103,6 @@ https://github.com/btcrabb/SlideSeg
           /data/$USER/images/ \
           /data/$USER/xml/
 ```
+
+### 6. Warning
+  New setuptools version 46 will cause error because it is not compatible with openslide. Setuptools 45 will be used until openslide update.
