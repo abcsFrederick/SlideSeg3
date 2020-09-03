@@ -2,7 +2,7 @@
 Author: Tianyi Miao <br>
 Modified Sep 12, 2019 <br>
 
-SlideSeg3 is an enhanced python3 version of the original SlideSeg. Replace 'slideseg' with 'slideseg3' in the following instructions to install and use SlideSeg3.
+SlideSeg3 is an enhanced python3 version of the original SlideSeg.
 
 # SlideSeg
 Author: Brendan Crabb <brendancrabb8388@pointloma.edu> <br>
@@ -31,12 +31,12 @@ Go to main directory
 
 ##### 1.1 Creating environment from .yml file <a class ="anchor" id="1.1"></a>
 
-<code>conda env create -f environment_slideseg.yml </code>
+<code>conda env create -f environment_slideseg3.yml </code>
 
 Creating the environment might take a few minutes. Once finished, issue the following command to activate the environment:
 
-* Windows: <code>activate SlideSeg</code>
-* macOS and Linux: <code>source activate SlideSeg</code>
+* Windows: <code>activate SlideSeg3</code>
+* macOS and Linux: <code>source activate SlideSeg3</code>
 
 If the environment was activated successfully, you should see (SlideSeg) at the beggining of the command prompt.
 
