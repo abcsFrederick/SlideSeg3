@@ -31,14 +31,14 @@ Go to main directory
 
 ##### 1.1 Creating environment from .yml file <a class ="anchor" id="1.1"></a>
 
-<code>conda env create -f environment_slideseg3.yml </code>
+<code>conda env create -f environment_slideseg.yml </code>
 
 Creating the environment might take a few minutes. Once finished, issue the following command to activate the environment:
 
-* Windows: <code>activate SlideSeg3</code>
-* macOS and Linux: <code>source activate SlideSeg3</code>
+* Windows: <code>activate SlideSeg</code>
+* macOS and Linux: <code>source activate SlideSeg</code>
 
-If the environment was activated successfully, you should see (SlideSeg3) at the beggining of the command prompt.
+If the environment was activated successfully, you should see (SlideSeg) at the beggining of the command prompt.
 
 OpenSlide and OpenCV are C libraries; as a result, they have to be installed separately from the conda environment, which contains all of the python dependencies.
 
