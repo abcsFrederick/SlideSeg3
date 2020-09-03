@@ -1,10 +1,15 @@
 # SlideSeg3
-
-Author: Brendan Crabb <brendancrabb8388@pointloma.edu> <br>
+Author: Tianyi Miao <br>
 Modified Sep 12, 2019 <br>
+
+SlideSeg3 is the python3 version of the original SlideSeg package with additional enhancements.
+
+# SlideSeg
+Author: Brendan Crabb <brendancrabb8388@pointloma.edu> <br>
+Created August 1, 2017
 <hr>
 
-Welcome to SlideSeg3, a python3 module modified from SlideSeg that allows you to segment whole slide images into usable image
+Welcome to SlideSeg, a python module modified from SlideSeg that allows you to segment whole slide images into usable image
 chips for deep learning. Image masks for each chip are generated from associated markup and annotation files.
 
 If you use this code for research purposes, please cite the following in your paper: 
