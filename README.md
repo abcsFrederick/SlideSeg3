@@ -2,7 +2,7 @@
 Author: Tianyi Miao <br>
 Modified Sep 12, 2019 <br>
 
-SlideSeg3 is the python3 version of the original SlideSeg package with additional enhancements.
+SlideSeg3 is an enhanced python3 version of the original SlideSeg packages. Replace 'slideseg' with 'slideseg3' in the following instructions to install and use SlideSeg3.
 
 # SlideSeg
 Author: Brendan Crabb <brendancrabb8388@pointloma.edu> <br>
